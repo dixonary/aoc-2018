@@ -22,10 +22,8 @@ import Debug.Trace
 
 
 main = do
-    -- Data loading
-    [players,marbles] <- readFile "input"
-        <&> init             -- What is \n
-        <&> runP readInts    -- Run parser and extract all data
+    -- Run parser and extract all data
+    [players,marbles] <- runP readInts <$> readFile "input"
 
     let
         play :: PointedList Int -> [Int] -> [Int] 
@@ -54,7 +52,8 @@ main = do
 
 
 -- Useful bonus functions on lists
--- Take an association list and sum up the second element, grouped by the first
+-- Take an association list and sum up the second element,
+-- grouped by the first
 combine :: (Eq a, Ord a, Num b) => [(a,b)] -> [(a,b)]
 combine = Map.toList . foldl' add Map.empty
     where add map (k,x) = Map.insertWith (+) k x map
