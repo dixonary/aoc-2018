@@ -1,2 +1,0 @@
-hxcpp_api_level=331
-hxcpp=/usr/local/lib/haxe/lib-flixel44/hxcpp/4,0,4/
