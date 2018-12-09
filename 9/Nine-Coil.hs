@@ -1,5 +1,7 @@
 module NineCoil where
 
+-- A variant of Nine which uses a circular doubly-linked list.
+
 -- Data loading
 import Text.ParserCombinators.ReadP 
 import Data.Char 

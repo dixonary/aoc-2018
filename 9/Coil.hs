@@ -1,4 +1,5 @@
 {-# LANGUAGE RecursiveDo, BangPatterns #-}
+-- A coil is a circular, recursively-defined, doubly linked list.
 module Coil where
 
 import Data.IORef
