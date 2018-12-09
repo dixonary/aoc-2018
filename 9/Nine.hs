@@ -35,7 +35,7 @@ main = do
             | otherwise      = 0 : play (circle & next & insert marble) ms
 
             where
-                special   = (== 0) . (`mod` 23)
+                special m = m `mod` 23 == 0
                 circBack  = circle & moveN (-7) 
                 remMarble = _focus circBack
                 delete' l = let Just l' = delete l in l'
