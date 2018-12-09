@@ -32,12 +32,12 @@ class Nine {
 
 
 @:generic
-class Coil {
-    var left:Coil;
-    public var right:Coil;
-    public var val:Int;
+class Coil<T> {
+    var left:Coil<T>;
+    public var right:Coil<T>;
+    public var val:T;
 
-    public function new(val:Int) {
+    public function new(val:T) {
         left = this;
         right = this;
         this.val = val;
@@ -53,8 +53,8 @@ class Coil {
         return "" + vals.map(function(c){return c.val;});
     }
 
-    public function insert(val:Int):Coil {
-        var c = new Coil(val);
+    public function insert(val:T):Coil<T> {
+        var c = new Coil<T>(val);
 
         c.right = right; 
         right.left = c;
@@ -65,13 +65,13 @@ class Coil {
         return c;
     }
 
-    public function delete():Coil {
+    public function delete():Coil<T> {
         left.right = right;
         right.left = left;
         return right;
     }
 
-    public function move(n:Int):Coil {
+    public function move(n:Int):Coil<T> {
         if(n == 0) return this;
         if(n<0) return left.move(n+1);
         if(n>0) return right.move(n-1); 
