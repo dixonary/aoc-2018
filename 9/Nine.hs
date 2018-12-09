@@ -15,8 +15,8 @@ import Data.Ord
 
 -- Useful data structures
 import qualified Data.Map as Map
-import Data.List.PointedList.Circular
-import Data.List.PointedList (singleton)
+import Data.List.PointedList.Circular       -- library PointedList
+import Data.List.PointedList (singleton)    -- library PointedList
 
 import Debug.Trace
 
