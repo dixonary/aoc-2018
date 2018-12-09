@@ -1,0 +1,5 @@
+cabal.*
+*.cabal
+dist/
+Setup.hs
+.cabal-sandbox/
