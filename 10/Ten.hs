@@ -1,5 +1,5 @@
 {-#LANGUAGE RecordWildCards #-}
-module Nine where
+module Ten where
 
 import Text.ParserCombinators.ReadP 
 import Data.Char 
