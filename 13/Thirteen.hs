@@ -9,6 +9,7 @@ import Control.Arrow (first, second)
 import Data.Function (on, (&))
 import Data.List 
 import Data.Functor ((<&>))
+import Data.Ord
 import Data.Maybe
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -21,15 +22,17 @@ main = do
          <&> (readTrack)
 
     -- Part 1
-    print $ untilM update track
+    print $ untilLeft update track
 
     -- Part 2
-    print $ untilM updateAndRemove track
+    print $ untilLeft updateAndRemove track
                             
-untilM :: Monad m => (a -> m a) -> a -> m a
-untilM f x = do
-    x' <- f x
-    untilM f x'
+untilLeft :: (a -> Either e a) -> a -> e
+untilLeft f x = do
+    let x' = f x
+    case x' of
+        Left l -> l
+        Right r -> untilLeft f r
 
 update :: Track -> Either (Int,Int) Track
 update t@(Track railmap carts) = Track railmap <$> updateCarts [] carts
@@ -50,17 +53,19 @@ updateAndRemove :: Track -> Either (Int,Int) Track
 updateAndRemove t@(Track railmap carts) = Track railmap <$>  updateCarts [] carts
     where 
         updateCarts :: [CartMeta] -> [CartMeta] -> Either (Int,Int) [CartMeta]
-        updateCarts [((y',x'),dir',intention')] [] = Left (x',y') -- Last remaining vehicle
-        updateCarts dones [] = Right dones
+        updateCarts dones [] = case dones of
+            [((y',x'),dir',intention')] -> Left (x',y')
+            _                           -> Right $ sortBy (comparing (\(l,a,b) -> l)) dones
+                
         updateCarts dones (((y,x),dir,intention):cs) = 
-              updateCarts dones' cs'
-              where
-                  ((y',x'),dir',intention') = move ((y,x),dir,intention) railmap
-                  collides ((a,b),_,_) = a == y' && b == x'
-                  collision = any collides $ dones ++ cs
+            updateCarts dones' cs'
+            where
+                ((y',x'),dir',intention') = move ((y,x),dir,intention) railmap
+                collides ((a,b),_,_) = a == y' && b == x'
+                collision = any collides $ dones ++ cs
 
-                  dones' = if collision then filter (not.collides) dones else ((y',x'),dir',intention') : dones
-                  cs'    = if collision then filter (not.collides) cs    else                             cs
+                dones' = if collision then filter (not.collides) dones else ((y',x'),dir',intention') : dones
+                cs'    = if collision then filter (not.collides) cs    else                             cs
                     
 
 -- Move a cart one step along the track.
@@ -91,11 +96,7 @@ move ((y,x),dir,intention) railmap = ((y',x'),dir',intention')
                      _    -> intention 
         
 
--- *** Data types and marshalling functions ***
-data Track = Track Railmap [CartMeta]
-
-type CartMeta = ((Int,Int), Cart, Intention)
-
+-- A two-dimensional grid
 type Map2D a = Map Int (Map Int a)
 
 ins2d :: Int -> Int -> a -> Map2D a -> Map2D a
@@ -104,7 +105,17 @@ ins2d x y r rm = Map.alter (\m -> case m of
         Just m' -> Just $ Map.insert x r m') y rm
 
 fmap2d :: (a->b) -> Map2D a -> Map2D b
-fmap2d f = Map.map $ Map.map f
+fmap2d = Map.map . Map.map 
+
+get2d :: Int -> Int -> Map2D a -> Maybe a
+get2d x y m = Map.lookup x =<< Map.lookup y m 
+
+
+
+-- *** Data types and marshalling functions ***
+data Track = Track Railmap [CartMeta]
+
+type CartMeta = ((Int,Int), Cart, Intention)
 
 type Railmap = Map2D Rails
 
@@ -112,7 +123,6 @@ data Cart  = N | S | E | W
     deriving (Eq)
 data Rails = None | Intn | Vert | Horz | NE | NW | SE | SW
     deriving (Eq)
-
 data Intention = L | St | R
     deriving (Eq,Show)
 
@@ -160,8 +170,6 @@ instance Show Rails where
     show SE   = "/"
     show SW   = "\\"
 
-get2d :: Int -> Int -> Map2D a -> Maybe a
-get2d x y m = Map.lookup x =<< Map.lookup y m 
 
 readTrack :: String -> Track
 readTrack str = do
