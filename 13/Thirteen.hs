@@ -27,12 +27,14 @@ main = do
     -- Part 2
     print $ untilLeft updateAndRemove track
                             
+
 untilLeft :: (a -> Either e a) -> a -> e
 untilLeft f x = do
     let x' = f x
     case x' of
         Left l -> l
         Right r -> untilLeft f r
+
 
 update :: Track -> Either (Int,Int) Track
 update t@(Track railmap carts) = Track railmap <$> updateCarts [] carts
@@ -87,7 +89,7 @@ move ((y,x),dir,intention) railmap = ((y',x'),dir',intention')
             NW -> if dir == E then N else W
             SE -> if dir == W then S else E
             SW -> if dir == E then S else W
-            Intn -> takeJunction intention dir
+            Intn -> intention `from` dir
             None -> error $ "How did I get here?\n"
                             ++ show (y,x,dir,intention) ++ "\n"
         
@@ -111,7 +113,6 @@ get2d :: Int -> Int -> Map2D a -> Maybe a
 get2d x y m = Map.lookup x =<< Map.lookup y m 
 
 
-
 -- *** Data types and marshalling functions ***
 data Track = Track Railmap [CartMeta]
 
@@ -120,30 +121,12 @@ type CartMeta = ((Int,Int), Cart, Intention)
 type Railmap = Map2D Rails
 
 data Cart  = N | S | E | W
-    deriving (Eq)
+    deriving (Eq,Enum,Bounded)
 data Rails = None | Intn | Vert | Horz | NE | NW | SE | SW
-    deriving (Eq)
+    deriving (Eq,Enum,Bounded)
 data Intention = L | St | R
-    deriving (Eq,Show)
+    deriving (Eq,Enum,Bounded,Show)
 
-takeJunction :: Intention -> Cart -> Cart
-takeJunction L S = E
-takeJunction L E = N
-takeJunction L N = W
-takeJunction L W = S
-takeJunction R S = W
-takeJunction R E = S
-takeJunction R N = E
-takeJunction R W = N
-takeJunction St S = S
-takeJunction St E = E
-takeJunction St N = N
-takeJunction St W = W
-
-next :: Intention -> Intention
-next L = St
-next St = R
-next R = L
 
 instance Show Track where
     show (Track railmap carts) = do
@@ -155,20 +138,20 @@ instance Show Track where
         unlines str
 
 instance Show Cart where
-    show N = "^"
-    show S = "v"
-    show E = ">"
-    show W = "<"
+    show N = "^"; show S = "v"; show E = ">"; show W = "<"
 
-instance Show Rails where
-    show None = " "
-    show Intn = "+"
-    show Vert = "|"
-    show Horz = "-"
-    show NE   = "\\"
-    show NW   = "/"
-    show SE   = "/"
-    show SW   = "\\"
+instance Show Rails where 
+    show None = " "; show Intn = "+"; show Vert = "|"; show Horz = "-";
+    show NE   = "\\";show NW   = "/"; show SE   = "/"; show SW   = "\\"
+
+
+from :: Intention -> Cart -> Cart
+L  `from` S = E;   L  `from` E = N;   L  `from` N = W;   L  `from` W = S
+R  `from` S = W;   R  `from` E = S;   R  `from` N = E;   R  `from` W = N
+St `from` S = S;   St `from` E = E;   St `from` N = N;   St `from` W = W
+
+next :: Intention -> Intention
+next L = St; next St = R; next R = L
 
 
 readTrack :: String -> Track

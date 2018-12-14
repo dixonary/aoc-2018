@@ -4,3 +4,5 @@ dist/
 Setup.hs
 .cabal-sandbox/
 out/
+*.hi
+*.o
